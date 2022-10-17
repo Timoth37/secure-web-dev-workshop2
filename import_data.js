@@ -28,13 +28,12 @@ const Location = mongoose.model('Location', filmingLocationsSchema);
 
 async function main (){
     const result = await mongoose.connect(process.env.MONGO_URI);
-    console.log("Success")
-    //loadLocations();
-    deleteByID('63405b53586239aabf08bbdd');
-    locationByID('63405b53586239aabf08bbe1');
-    locationsByName('IBRAHIM');
-
-
+    console.log("Connected with success");
+    //await loadLocations();
+    //console.log("Loading all elements to the database...");
+    await deleteByID('63405b53586239aabf08bbdd');
+    await locationByID('63405b53586239aabf08bbe1');
+    await locationsByName('IBRAHIM');
     const instance = new Location({filmType : "film",
         filmProducerName : "Dupond",
         endDate: new Date("10-12-2022"),
@@ -47,7 +46,12 @@ async function main (){
         startDate: new Date("10-10-1997"),
         year: parseInt("1997")})
     addLocation(instance);
-    locationsByName("Top Gun");
+    await locationsByName("Top Gun");
+    const update = {$set: {filmProducerName: "Mr Dupond"}};
+    updateLocation("634d779fa54b81414651b7e5", update);
+    await locationsByName("Top Gun");
+
+
 }
 
 async function loadLocations () {
@@ -70,27 +74,36 @@ async function loadLocations () {
 }
 
 async function locationByID(idToFind){
-    Location.findById(idToFind).then(film => console.log(film));
+    Location.findById(idToFind).then(film => console.log("Location by ID : ",film));
 }
 
 async function locationsByName(filmName){
-    Location.find({filmName : filmName}).then(films => console.log("Results : ", films));
+    Location.find({filmName : filmName}).then(films => console.log("Locations by Name : ", films));
 }
 
 async function deleteByID(id){
-    Location.findOneAndDelete( {_id : id}).then(console.log("Removed"));
+    try{
+        Location.findOneAndDelete( {_id : id}).then(console.log("Instance removed"));
+    }catch(e){
+        console.log("Instance not present or already deleted");
+    }
 
 }
-
 
 function addLocation(location){
     try{
         location.save();
     }catch(e){
-        console.log("Someting crashed");
+        console.log("Something crashed");
     }
 }
 
-
+function updateLocation(id, update){
+    try {
+        Location.updateOne({ id: id }, update).then(console.log("Instance updated"));
+    } catch (e) {
+        console.log("Something crashed");
+    }
+}
 const filmingLocations = require('./lieux-de-tournage-a-paris.json')
 main()
